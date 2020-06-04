@@ -5,7 +5,6 @@ mod cpu;
 mod bus;
 mod debug;
 mod graphics;
-mod opcode_executor;
 mod input;
 mod sound;
 

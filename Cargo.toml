@@ -10,3 +10,4 @@ edition = "2018"
 sdl2 = "0.34.0"
 crossterm = "0.17"
 tui = { version = "0.9", default-features = false, features = ['crossterm'] }
+byteorder = "1.3.4"

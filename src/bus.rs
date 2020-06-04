@@ -14,5 +14,12 @@ pub struct Bus {
 }
 
 impl Bus {
-    
+    pub fn new(memory: Memory) -> Bus {
+        Bus {
+            memory: memory,
+            input: Input::new(),
+            graphics: Graphics::new(),
+            sound: Sound::new(),
+        }
+    }
 }

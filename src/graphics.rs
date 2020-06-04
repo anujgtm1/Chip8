@@ -8,6 +8,13 @@ pub struct Graphics {
 
 }
 
+impl Graphics {
+    pub fn new() -> Graphics {
+        Graphics {}
+    }
+}
+
+
 pub fn sdl_demo() {
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
