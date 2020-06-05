@@ -11,9 +11,11 @@ pub struct Memory {
 
 impl Memory {
     pub fn new() -> Memory {
-        Memory{
+        let mut memory = Memory{
             memory: [0; 4096]
-        }
+        };
+        memory.load_fonts();
+        memory
     }
     pub fn read(&self, address: &u16) -> u8 {
         self.memory[*address as usize]
@@ -82,8 +84,7 @@ mod test {
 
     #[test]
     fn test_font_load() {
-        let mut memory = Memory::new();
-        memory.load_fonts();
+        let memory = Memory::new();
         assert_eq!(memory.read(&0), 0xF0);
         assert_eq!(memory.read(&5), 0x20);
         assert_eq!(memory.read(&11), 0x10);
@@ -92,8 +93,7 @@ mod test {
 
     #[test]
     fn test_font_address() {
-        let mut memory = Memory::new();
-        memory.load_fonts();
+        let memory = Memory::new();
         assert_eq!(memory.get_font_address(&0x0), 0);
         assert_eq!(memory.get_font_address(&0x1), 5);
         assert_eq!(memory.get_font_address(&0x2), 10);

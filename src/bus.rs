@@ -14,9 +14,9 @@ pub struct Bus {
 }
 
 impl Bus {
-    pub fn new(memory: Memory) -> Bus {
+    pub fn new() -> Bus {
         Bus {
-            memory: memory,
+            memory: Memory::new(),
             input: Input::new(),
             graphics: Graphics::new(),
             sound: Sound::new(),
