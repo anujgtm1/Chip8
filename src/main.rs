@@ -7,6 +7,7 @@ mod debug;
 mod graphics;
 mod input;
 mod sound;
+mod instructions;
 
 
 fn main() {
