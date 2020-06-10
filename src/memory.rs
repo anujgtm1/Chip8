@@ -10,6 +10,7 @@ pub struct Memory {
 }
 
 impl Memory {
+
     pub fn new() -> Memory {
         let mut memory = Memory{
             memory: [0; 4096]
@@ -17,6 +18,13 @@ impl Memory {
         memory.load_fonts();
         memory
     }
+
+    pub fn mock() -> Memory {
+        Memory {
+            memory: [0; 4096]
+        }
+    }
+    
     pub fn read(&self, address: &u16) -> u8 {
         self.memory[*address as usize]
     }

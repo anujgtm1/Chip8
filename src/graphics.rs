@@ -12,6 +12,10 @@ impl Graphics {
     pub fn new() -> Graphics {
         Graphics {}
     }
+
+    pub fn mock() -> Graphics {
+        Graphics {}
+    }
 }
 
 

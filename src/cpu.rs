@@ -1,4 +1,5 @@
 use crate::bus::Bus;
+use crate::instructions::Instruction;
 
 const REGISTER_SIZE: usize = 8;
 const STACK_SIZE: usize = 16;
@@ -30,9 +31,17 @@ impl CPU {
         }
     }
 
+    pub fn mock() -> CPU {
+        CPU::new(Bus::mock())
+    }
+
     pub fn fetch_opcode(&mut self) -> u16 {
         let instruction = self.bus.memory.read_instruction(&self.PC);
         instruction
+    }
+
+    pub fn decode(&self, opcode: u16) -> Instruction {
+        Instruction::fetch_opcode(&opcode)
     }
 
     pub fn inc_pc(&mut self) {
@@ -50,10 +59,9 @@ mod test {
     use super::*;
 
     fn get_cpu() -> CPU {
-        let mut bus = Bus::new();
+        let mut cpu = CPU::mock();
         let data: Vec<u8> = vec![0xDE, 0xAD, 0xBE, 0xEF];
-        bus.memory.load_data(&0x200, &data);
-        let cpu = CPU::new(bus);
+        cpu.bus.memory.load_data(&0x200, &data);
         cpu
     }
 
@@ -65,5 +73,14 @@ mod test {
         assert_ne!(cpu.fetch_opcode(), 0xBEEF);
         cpu.inc_pc();
         assert_eq!(cpu.fetch_opcode(), 0xBEEF);
+    }
+
+    #[test]
+    fn test_fetch_decode() {
+        let mut cpu: CPU = get_cpu();
+        cpu.set_pc(&0x200);
+        let opcode: u16 = cpu.fetch_opcode();
+        let ins: Instruction = cpu.decode(opcode);
+        assert_eq!(ins, Instruction::DisplaySpriteAtLocation{x: 0xE, y: 0xA, n: 0xD});
     }
 }

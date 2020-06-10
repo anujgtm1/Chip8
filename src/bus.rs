@@ -14,12 +14,21 @@ pub struct Bus {
 }
 
 impl Bus {
+
+    pub fn mock() -> Bus {
+        Bus {
+            memory: Memory::mock(),
+            input: Input::mock(),
+            graphics: Graphics::mock(),
+            sound: Sound::mock()
+        }
+    }
     pub fn new() -> Bus {
         Bus {
             memory: Memory::new(),
             input: Input::new(),
             graphics: Graphics::new(),
-            sound: Sound::new(),
+            sound: Sound::mock(),
         }
     }
 }

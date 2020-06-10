@@ -2,7 +2,7 @@ type Address = u16;
 type HalfWord = u8;
 
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Instruction {
     NOP,
     InvalidInstruction,
@@ -25,7 +25,7 @@ pub enum Instruction {
     SubtractIntoDifferentRegister{source_register: u8, destination_register: u8},
     ShiftLeft{register_1: u8, register_2: u8},
     SkipIfRegistersNotEqual{register_1: u8, register_2: u8},
-    SetInstructionRegister{value: u16},
+    SetAddressRegister{value: u16},
     JumpToLocationAndOffset0{address: u16},
     GenerateRandomData{register: u8, value: u8},
     DisplaySpriteAtLocation{x: u8, y: u8, n: u8},
@@ -72,7 +72,7 @@ fn get_last_3_nibbles(value: &u16) -> u16 {
 
 
 impl Instruction {
-    pub fn fetch_opcode(word: u16) -> Instruction {
+    pub fn fetch_opcode(word: &u16) -> Instruction {
         match get_first_nibble(&word) {
             0 => match get_last_byte(&word) {
                 0xE0 => Instruction::ClearDisplay,
@@ -106,7 +106,7 @@ impl Instruction {
                 }
             }
             9 => Instruction::SkipIfRegistersNotEqual{register_1: get_second_nibble(&word), register_2: get_third_nibble(&word)},
-            0xA => Instruction::SetInstructionRegister{value: get_last_3_nibbles(&word)},
+            0xA => Instruction::SetAddressRegister{value: get_last_3_nibbles(&word)},
             0xB => Instruction::JumpToLocationAndOffset0{address: get_last_3_nibbles(&word)},
             0xC => Instruction::GenerateRandomData{register: get_second_nibble(&word), value: get_last_byte(&word)},
             0xD => Instruction::DisplaySpriteAtLocation{x: get_second_nibble(&word), y: get_third_nibble(&word), n: get_last_nibble(&word)},
@@ -150,5 +150,188 @@ mod test {
         assert_eq!(get_last_nibble(&data), 0xD);
         assert_eq!(get_last_byte(&data), 0xAD);
         assert_eq!(get_last_3_nibbles(&data), 0xEAD);
+    }
+
+    #[test]
+    fn test_fetch_clear_display() {
+        assert_eq!(Instruction::fetch_opcode(&0x00E0), Instruction::ClearDisplay);
+    }
+
+    #[test]
+    fn test_return() {
+        assert_eq!(Instruction::fetch_opcode(&0x00EE), Instruction::Return);
+    }
+
+    #[test]
+    fn test_nop() {
+        assert_eq!(Instruction::fetch_opcode(&0x0000), Instruction::NOP);
+    }
+
+    #[test]
+    fn test_invalid_instruction() {
+        assert_eq!(Instruction::fetch_opcode(&0xF000), Instruction::InvalidInstruction);
+        assert_eq!(Instruction::fetch_opcode(&0xE000), Instruction::InvalidInstruction);
+        assert_eq!(Instruction::fetch_opcode(&0x8009), Instruction::InvalidInstruction);
+        assert_eq!(Instruction::fetch_opcode(&0x5001), Instruction::InvalidInstruction);
+    }
+
+    #[test]
+    fn test_jump_to_location() {
+        assert_eq!(Instruction::fetch_opcode(&0x1FEF), Instruction::Jump{address: 0xFEF});
+    }
+
+    #[test]
+    fn test_call() {
+        assert_eq!(Instruction::fetch_opcode(&0x2FEF), Instruction::Call{address: 0xFEF});
+    }
+
+    #[test]
+    fn test_skip_if_equal() {
+        assert_eq!(Instruction::fetch_opcode(&0x3355), Instruction::SkipIfEqual{register: 0x3, value: 0x55});
+    }
+
+    #[test]
+    fn test_skip_if_not_equal() {
+        assert_eq!(Instruction::fetch_opcode(&0x4355), Instruction::SkipIfNotEqual{register: 0x3, value: 0x55});
+    }
+
+    #[test]
+    fn test_skip_if_register_equal() {
+        assert_eq!(Instruction::fetch_opcode(&0x5350), Instruction::SkipIfRegistersEqual{register_1: 0x3, register_2: 0x5});
+    }
+
+    #[test]
+    fn test_load_register() {
+        assert_eq!(Instruction::fetch_opcode(&0x6355), Instruction::LoadRegister{register: 0x3, value: 0x55});
+    }
+
+    #[test]
+    fn test_add_register() {
+        assert_eq!(Instruction::fetch_opcode(&0x7344), Instruction::AddToRegister{register: 0x3, value: 0x44});
+    }
+
+    #[test]
+    fn test_load_register_to_register() {
+        assert_eq!(Instruction::fetch_opcode(&0x8350), Instruction::SetRegisterToRegister{destination_register: 0x3, source_register: 0x5});
+    }
+
+    #[test]
+    fn test_or_register() {
+        assert_eq!(Instruction::fetch_opcode(&0x8351), Instruction::OrRegisterToRegister{destination_register: 0x3, source_register: 0x5});
+    }
+
+    #[test]
+    fn test_and_register() {
+        assert_eq!(Instruction::fetch_opcode(&0x8352), Instruction::AndRegisterToRegister{destination_register: 0x3, source_register: 0x5});
+    }
+
+    #[test]
+    fn test_xor_register() {
+        assert_eq!(Instruction::fetch_opcode(&0x8353), Instruction::XorRegisterToRegister{destination_register: 0x3, source_register: 0x5});
+    }
+
+    #[test]
+    fn test_add_register_register() {
+        assert_eq!(Instruction::fetch_opcode(&0x8354), Instruction::AddRegisterToRegister{destination_register: 0x3, source_register: 0x5});
+    }
+
+    #[test]
+    fn test_sub_register_register() {
+        assert_eq!(Instruction::fetch_opcode(&0x8355), Instruction::SubtractRegisterFromRegister{destination_register: 0x3, source_register: 0x5});
+    }
+
+    #[test]
+    fn test_shr() {
+        assert_eq!(Instruction::fetch_opcode(&0x8356), Instruction::ShiftRight{register_1: 0x3, register_2: 0x5});
+    }
+
+    #[test]
+    fn test_sub_register_register_inverse() {
+        assert_eq!(Instruction::fetch_opcode(&0x8357), Instruction::SubtractIntoDifferentRegister{destination_register: 0x5, source_register: 0x3});
+    }
+
+    #[test]
+    fn test_shl() {
+        assert_eq!(Instruction::fetch_opcode(&0x835E), Instruction::ShiftLeft{register_1: 0x3, register_2: 0x5});
+    }
+
+    #[test]
+    fn test_skip_if_register_not_equal() {
+        assert_eq!(Instruction::fetch_opcode(&0x9350), Instruction::SkipIfRegistersNotEqual{register_1: 0x3, register_2: 0x5});
+    }
+
+    #[test]
+    fn test_set_address_register() {
+        assert_eq!(Instruction::fetch_opcode(&0xA351), Instruction::SetAddressRegister{value: 0x351});
+    }
+
+    #[test]
+    fn test_jump_to_location_offset() {
+        assert_eq!(Instruction::fetch_opcode(&0xB351), Instruction::JumpToLocationAndOffset0{address: 0x351});
+    }
+
+    #[test]
+    fn test_random_byte() {
+        assert_eq!(Instruction::fetch_opcode(&0xC351), Instruction::GenerateRandomData{register: 0x3, value: 0x51});
+    }
+
+    #[test]
+    fn test_draw_sprite() {
+        assert_eq!(Instruction::fetch_opcode(&0xD351), Instruction::DisplaySpriteAtLocation{x: 3, y: 5, n: 1});
+    }
+
+    #[test]
+    fn test_skip_if_key_value_match() {
+        assert_eq!(Instruction::fetch_opcode(&0xE39E), Instruction::SkipIfPressedKeyEqualToRegister{register: 0x3});
+    }
+
+    #[test]
+    fn test_skip_if_not_key_value_match() {
+        assert_eq!(Instruction::fetch_opcode(&0xE3A1), Instruction::DontSkipIfPressedKeyEqualToRegister{register: 0x3});
+    }
+    
+    #[test]
+    fn test_load_dt_to_register() {
+        assert_eq!(Instruction::fetch_opcode(&0xF307), Instruction::SetRegisterToDelayTimer{register: 0x3});
+    }
+
+    #[test]
+    fn test_wait_for_key_press() {
+        assert_eq!(Instruction::fetch_opcode(&0xF30A), Instruction::WaitForKeyPressAndStoreValue{register: 0x3});
+    }
+
+    #[test]
+    fn test_set_dt_to_register() {
+        assert_eq!(Instruction::fetch_opcode(&0xF315), Instruction::SetDelayTimerToRegister{register: 0x3});
+    }
+
+    #[test]
+    fn test_set_st_to_register() {
+        assert_eq!(Instruction::fetch_opcode(&0xF318), Instruction::SetSoundTimerToRegister{register: 0x3});
+    }
+
+    #[test]
+    fn test_add_register_to_i() {
+        assert_eq!(Instruction::fetch_opcode(&0xF31E), Instruction::AddRegisterToRegisterI{register: 0x3});
+    }
+
+    #[test]
+    fn test_get_font_value() {
+        assert_eq!(Instruction::fetch_opcode(&0xF329), Instruction::SetIToFontAddress{digit: 0x3});
+    }
+
+    #[test]
+    fn test_store_bcd_to_i() {
+        assert_eq!(Instruction::fetch_opcode(&0xF333), Instruction::StoreBCDValueOfRegisterToI{register: 0x3});
+    }
+
+    #[test]
+    fn test_store_n_registers() {
+        assert_eq!(Instruction::fetch_opcode(&0xF355), Instruction::StoreNRegistersToMemory{n: 0x3});
+    }
+
+    #[test]
+    fn test_load_n_registers() {
+        assert_eq!(Instruction::fetch_opcode(&0xF365), Instruction::ReadNRegistersFromMemory{n: 0x3});
     }
 }
