@@ -21,9 +21,9 @@ pub enum Instruction {
     XorRegisterToRegister{destination_register: u8, source_register: u8},
     AddRegisterToRegister{destination_register: u8, source_register: u8},
     SubtractRegisterFromRegister{destination_register: u8, source_register: u8},
-    ShiftRight{register_1: u8, register_2: u8},
+    ShiftRight{destination_register: u8, source_register: u8},
     SubtractIntoDifferentRegister{source_register: u8, destination_register: u8},
-    ShiftLeft{register_1: u8, register_2: u8},
+    ShiftLeft{destination_register: u8, source_register: u8},
     SkipIfRegistersNotEqual{register_1: u8, register_2: u8},
     SetAddressRegister{value: u16},
     JumpToLocationAndOffset0{address: u16},
@@ -99,9 +99,9 @@ impl Instruction {
                     3 => Instruction::XorRegisterToRegister{destination_register: register_1, source_register: register_2},
                     4 => Instruction::AddRegisterToRegister{destination_register: register_1, source_register: register_2},
                     5 => Instruction::SubtractRegisterFromRegister{destination_register: register_1, source_register: register_2},
-                    6 => Instruction::ShiftRight{register_1: register_1, register_2: register_2},
+                    6 => Instruction::ShiftRight{destination_register: register_1, source_register: register_2},
                     7 => Instruction::SubtractIntoDifferentRegister{source_register: register_1, destination_register: register_2},
-                    0xE => Instruction::ShiftLeft{register_1: register_1, register_2: register_2},
+                    0xE => Instruction::ShiftLeft{destination_register: register_1, source_register: register_2},
                     _ => Instruction::InvalidInstruction
                 }
             }
@@ -242,7 +242,7 @@ mod test {
 
     #[test]
     fn test_shr() {
-        assert_eq!(Instruction::fetch_opcode(&0x8356), Instruction::ShiftRight{register_1: 0x3, register_2: 0x5});
+        assert_eq!(Instruction::fetch_opcode(&0x8356), Instruction::ShiftRight{destination_register: 0x3, source_register: 0x5});
     }
 
     #[test]
@@ -252,7 +252,7 @@ mod test {
 
     #[test]
     fn test_shl() {
-        assert_eq!(Instruction::fetch_opcode(&0x835E), Instruction::ShiftLeft{register_1: 0x3, register_2: 0x5});
+        assert_eq!(Instruction::fetch_opcode(&0x835E), Instruction::ShiftLeft{destination_register: 0x3, source_register: 0x5});
     }
 
     #[test]
