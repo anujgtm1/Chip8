@@ -47,19 +47,19 @@ fn get_first_nibble(value: &u16) -> u8 {
 }
 
 fn get_second_nibble(value: &u16) -> u8 {
-    (value << 4 >> 12) as u8
+    (value >> 8) as u8 & 0xF
 }
 
 fn get_third_nibble(value: &u16) -> u8 {
-    (value << 8 >> 12) as u8
+    (value >> 4) as u8 & 0xF
 }
 
 fn get_last_nibble(value: &u16) -> u8 {
-    (value << 12 >> 12) as u8
+    *value as u8 & 0xF
 }
 
 fn get_last_byte(value: &u16) -> u8 {
-    (value << 8 >> 8) as u8
+    *value as u8
 }
 
 fn get_first_byte(value: &u16) -> u8 {
@@ -67,7 +67,7 @@ fn get_first_byte(value: &u16) -> u8 {
 }
 
 fn get_last_3_nibbles(value: &u16) -> u16 {
-    (value << 4 >> 4)
+    value & 0xFFF
 }
 
 
